@@ -3,6 +3,106 @@ How to Centralize Loggings into one account in AWS within one organization
 Development  XXX0495 = 222222222222
 Security XXX2340 = 111111111111
 
+### PreFlight Check
+1. Intermedial to advance level in Python. So, you can adapt and customized the `lambda.zip` files to your need an use cases.
+2. Basic to intermedial level in json to edit the json file policy.json to modify it if needed to your use case, since we give granular limited access to AWS resources.
+3. One AWS Account known as the **"Logging"** to centralize the logs from the **"Source-acccount"**.
+4. A second AWS Account in which the CloudWatch Log Group can be used as the source for the logs data an has us-east-1 in **"Logging"** as Log Destination Endpoint
+5. The AWS Command Line Interface (AWS CLI) properly installed, configured, and updated. Version 2 ‐ is the most recent major version of the AWS CLI and supports all of the latest features.
+
+## List of AWS Resources used in the Auto Replicate Parameter Entries workflow
+1. IAM
+2. Lambda
+3. CloudWatch
+4. CloudTrail
+5. SSM Parameter Store
+6. The AWS Command Line Interface (AWS CLI)
+7. ElasticSearch* (Need to add this step yet)
+
+## List of Programming languages used
+1. Python 3.9
+
+## Required IAM Roles and Policies
+In this case `Identity and Access Management (IAM)` is a global element, so do not worry about what region it is configured in you profile in the CLI. However, though some AWS Services like `EventBridge`, `CloudWatch`, and `Lambda` are regional. Therefore, be sure you are have us-east-1 (N. Virginia) as region for most of the purposes of this project. 
+We need 2 roles; **assume-role-for-logging** and **centralized-logs**  with limited granular permissions to interact with other AWS Services such as: Lambda, IAM, SSM, and CloudWatch Logs for this project
+
+The following limited policy will be attached to the role **centralized-logs**
+
+**central-logging-policy.json** - IAM Policy to authorize *centralized-logs* to create a subscription filter in CloudWatch, get Parameter, and assume role
+See `policy.json`
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "logs:DeleteSubscriptionFilter",
+                "logs:DescribeSubscriptionFilters",
+                "logs:PutSubscriptionFilter",
+                "ssm:GetParameters",
+                "ssm:GetParameter"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "VisualEditor1",
+            "Effect": "Allow",
+            "Action": "sts:AssumeRole",
+            "Resource": "arn:aws:iam::596294512340:role/assume-role-for-logging"
+        }
+    ]
+}
+```
+The following limited policy will be attached to the role **assume-role-for-logging**. 
+To provide write permissions to CloudWatch Logs.
+See the AWS Managed Policy `AWSLambdaBasicExecutionRole`
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+```
+
+### Amazon EventBridge
+**EventRule.json** - This rule filters *CreateLogGroup* and  *CreateLogStream* events coming from `AWS API Call via CloudTrail` and uses as a target *centralized-logs*.
+Take a pick at the rule here...
+
+```json
+	{
+  "source": [
+    "aws.logs"
+  ],
+  "detail-type": [
+    "AWS API Call via CloudTrail"
+  ],
+  "detail": {
+    "eventSource": [
+      "logs.amazonaws.com"
+    ],
+    "eventName": [
+      "CreateLogGroup",
+      "CreateLogStream"
+    ]
+  }
+}
+```
+
+Note: Sometimes when creating or editing complex custom rules such as when using prefix feature it is necessary to create them in EventBridge or to update the very same rules. If it is done CloudWatch directly it may not not work. Hence, we best configure the rules in EventBridge even though the end result is also shown in CloudWatch. 
+
 # Paso 1.- Crear centralized-logs Role en 222222222222
 
 ## 1.1 
