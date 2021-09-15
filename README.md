@@ -1,12 +1,12 @@
 # AWS-Centralized-loggings
 How to Centralize Loggings into one account in AWS within one organization
-Development  XXX0495 = 222222222222
-Security XXX2340 = 111111111111
+Source-Account= 222222222222
+Logging= 111111111111
 
 ### PreFlight Check
 1. Intermedial to advance level in Python. So, you can adapt and customized the `lambda.zip` files to your need an use cases.
 2. Basic to intermedial level in json to edit the json file policy.json to modify it if needed to your use case, since we give granular limited access to AWS resources.
-3. One AWS Account known as the **"Logging"** to centralize the logs from the **"Source-acccount"**.
+3. One AWS Account known as the **"Logging"** to centralize the logs from the **"Source-Acccount"**.
 4. A second AWS Account in which the CloudWatch Log Group can be used as the source for the logs data an has us-east-1 in **"Logging"** as Log Destination Endpoint
 5. The AWS Command Line Interface (AWS CLI) properly installed, configured, and updated. Version 2 ‐ is the most recent major version of the AWS CLI and supports all of the latest features.
 
@@ -103,12 +103,16 @@ Take a pick at the rule here...
 
 Note: Sometimes when creating or editing complex custom rules such as when using prefix feature it is necessary to create them in EventBridge or to update the very same rules. If it is done CloudWatch directly it may not not work. Hence, we best configure the rules in EventBridge even though the end result is also shown in CloudWatch. 
 
-# Paso 1.- Crear centralized-logs Role en 222222222222
+# Step 1.- Crear centralized-logs Role en 222222222222 (Logging Account)
+In every command line described here replace the placeholder accounts with your own account numbers
+Source-Account= 222222222222
+Logging= 111111111111
+Therefore, in every command line replace 222222222222 with the account number you designated as you Source-Account and replace 111111111111 with the account number that you designated as your Logging account
 
 ## 1.1 
-
+To Create a role in Source-Account by using the CLI command line. Type the following command line, be sure you are using your Source-Account credentials.
 ```
-export AWS_PROFILE=development        
+export AWS_PROFILE=Source-Account        
 aws iam create-role --role-name centralized-logs --assume-role-policy-document '{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}'
 ```
 
@@ -138,11 +142,11 @@ aws iam create-role --role-name centralized-logs --assume-role-policy-document '
 }
 ```
 
-## 1.2 Ahora pegarle la politica 
+## 1.2 Now let´s create a policy for the newly created role 
 
-Asegurarse que se esta en la carpeta del proyecto… /logging-project
+Be sure you are launching the commands from the folder where you downloaded the proyect files… /logging-project
 
-Y el archivo json se llama policy.json
+Let us use the file policy.json
 ```json
 {
     "Version": "2012-10-17",
@@ -169,8 +173,7 @@ Y el archivo json se llama policy.json
 }
 ```
 
-
-Ahora ejecutamos desde el CLI el comando 
+Execute the following command line 
 
 ```
 aws iam create-policy --policy-name central-logging-policy --policy-document file://policy.json
@@ -194,26 +197,24 @@ aws iam create-policy --policy-name central-logging-policy --policy-document fil
 }
 ```
 
-## 1.3 To attach the policy to the newly created role
+## 1.3 Now, we attach the policy to *centralized-logs*
 
 ```
 aws iam attach-role-policy --role-name centralized-logs --policy-arn arn:aws:iam::222222222222:policy/central-logging-policy
 ```
 
-Now lets go to Security Account ***
+Now lets go to Logging Account...
 
-# Paso 2.- Crear Role assume-role-for-logging en 111111111111
-```
-Export AWS_PROFILE=security
-```
+# Step 2.- Create Role assume-role-for-logging en 111111111111
 
-Se puede chequear cual profile estoy usando… 
+Be sure you are using your **Logging** account credentials. In case of doubt you can check which profile you are using with the following command line
+
 ```
 aws configure list
 ```
 
 ## 2.1
-Comando CLI para crear role
+Type the following command line to create the role **assume-role-for-logging**. In this command line we include the policy to enable the trusted relationship so as to enable **assume-role-for-logging** to assume role **centralized-logs** in AWS Source-Account.
 ```
 aws iam create-role --role-name assume-role-for-logging --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::222222222222:role/centralized-logs"},"Action":"sts:AssumeRole"}]}'
 ```
@@ -244,16 +245,19 @@ aws iam create-role --role-name assume-role-for-logging --assume-role-policy-doc
 
 ## 2.2
 
-Comando CLI para pegar policy
+Type the following CLI command to attach the AWS managed policy **AWSLambdaBasicExecutionRole**
 ```
 aws iam attach-role-policy --role-name assume-role-for-logging --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
 ```
 
-there is not output
+For this command line there is not output
 
-# Paso 3 To créate a “centralized-logs” lambda function 
+# Step 3.- Create the “centralized-logs” lambda function 
+Let us go back to **Source-Account** credentials
+Be sure that you have configure your CLI credentials for  in us-east-1
 
-## 3.1 Create lambda function
+## 3.1 Create lambda function replacing the placeholder account with your own account
+
 ```
 aws lambda create-function \
     --function-name centralized-logs \
@@ -286,7 +290,7 @@ aws lambda create-function \
     "PackageType": "Zip"
 }
 ```
-## 3.2 Grant CloudWatch Logs the permission to execute your function. Use the following command, replacing the placeholder account with your own account and the placeholder log group with the log group to process:
+## 3.2 Grant CloudWatch Logs the permission to execute your lambda function. Use the following command, replacing the placeholder account with your own account and the placeholder log group with the log group to process:
 ```
 aws lambda add-permission \
     --function-name "centralized-logs" \
@@ -304,11 +308,11 @@ OUTPUT:
 }
 ```
 
-# Paso 4. – Crear una regla en CloudWatch
+# Step 4. – Create the rule in CloudWatch in **Source-Account**
 
-Aquí vamos a crear una regla para ejecutar la lambda con una serie de comandos por pasos 
+Now we are going to create a rule to trigger the lambda function  
 
-## 4.1 Crear la regla “sent-logs-to-lambda”
+## 4.1 Create the rule “sent-logs-to-lambda”
 
 ```
 aws events put-rule --name "sent-logs-to-lambda" --event-pattern "{\"source\":[\"aws.logs\"],\"detail-type\":[\"AWS API Call via CloudTrail\"],\"detail\":{\"eventSource\":[\"logs.amazonaws.com\"],\"eventName\":[\"CreateLogGroup\",\"CreateLogStream\"]}}"
@@ -354,7 +358,7 @@ OUTPUT:
 }
 ```
 
-# Paso 5.- Crear un entry en el Parameter Store
+# Step 5.- Crear un entry en el Parameter Store
 
 ## 5.1 Follow the commands to create and entry at the Parameter Store for the Log Destination
 ```
@@ -373,7 +377,7 @@ aws ssm put-parameter \
 }
 ```
 
-## 5.2 Follow the commands to create and entry at the Parameter Store to assume the role in Security
+## 5.2 Follow the commands to create and entry at the Parameter Store to assume the role in Logging
 
 ```
 aws ssm put-parameter \
@@ -392,7 +396,7 @@ aws ssm put-parameter \
 }
 
 ```
-**** Testearlo ******
+# Step 6.- Test it!
 ```
 aws logs put-log-events --log-group-name testreplicatelogs --log-stream-name teststream1 --log-events "[{\"timestamp\":1631554348, \"message\": \"Simple logs replication Test\"}]"
 ```
