@@ -109,7 +109,7 @@ Source-Account= 222222222222
 Logging= 111111111111
 Therefore, in every command line replace 222222222222 with the account number you designated as you Source-Account and replace 111111111111 with the account number that you designated as your Logging account
 
-## 1.1 
+## 1.1 Create centralized-logs Role
 To Create a role in Source-Account by using the CLI command line. Type the following command line, be sure you are using your Source-Account credentials.
 ```
 export AWS_PROFILE=Source-Account        
@@ -197,7 +197,7 @@ aws iam create-policy --policy-name central-logging-policy --policy-document fil
 }
 ```
 
-## 1.3 Now, we attach the policy to *centralized-logs*
+## 1.3 Now, we attach the policy **central-logging-policy** to *centralized-logs*
 
 ```
 aws iam attach-role-policy --role-name centralized-logs --policy-arn arn:aws:iam::222222222222:policy/central-logging-policy
