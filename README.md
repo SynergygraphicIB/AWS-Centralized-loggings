@@ -103,7 +103,7 @@ Take a pick at the rule here...
 
 Note: Sometimes when creating or editing complex custom rules such as when using prefix feature it is necessary to create them in EventBridge or to update the very same rules. If it is done CloudWatch directly it may not not work. Hence, we best configure the rules in EventBridge even though the end result is also shown in CloudWatch. 
 
-# Step 1.- Crear centralized-logs Role en 222222222222 (Logging Account)
+# Step 1.- Create centralized-logs Role in 222222222222 (Logging Account)
 In every command line described here replace the placeholder accounts with your own account numbers
 Source-Account= 222222222222
 Logging= 111111111111
