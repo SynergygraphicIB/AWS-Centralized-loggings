@@ -111,8 +111,7 @@ Therefore, in every command line replace 222222222222 with the account number yo
 
 ## 1.1 Create centralized-logs Role
 To Create a role in Source-Account by using the CLI command line. Type the following command line, be sure you are using your Source-Account credentials.
-```
-export AWS_PROFILE=Source-Account        
+```       
 aws iam create-role --role-name centralized-logs --assume-role-policy-document '{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}'
 ```
 
@@ -213,7 +212,7 @@ Be sure you are using your **Logging** account credentials. In case of doubt you
 aws configure list
 ```
 
-## 2.1
+## 2.1 Create Role assume-role-for-logging
 Type the following command line to create the role **assume-role-for-logging**. In this command line we include the policy to enable the trusted relationship so as to enable **assume-role-for-logging** to assume role **centralized-logs** in AWS Source-Account.
 ```
 aws iam create-role --role-name assume-role-for-logging --assume-role-policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":{"AWS":"arn:aws:iam::222222222222:role/centralized-logs"},"Action":"sts:AssumeRole"}]}'
@@ -243,7 +242,7 @@ aws iam create-role --role-name assume-role-for-logging --assume-role-policy-doc
 }
 ```
 
-## 2.2
+## 2.2 Attach the AWS managed policy **AWSLambdaBasicExecutionRole**
 
 Type the following CLI command to attach the AWS managed policy **AWSLambdaBasicExecutionRole**
 ```
