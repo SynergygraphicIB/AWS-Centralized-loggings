@@ -204,6 +204,16 @@ aws iam create-policy --policy-name central-logging-policy --policy-document fil
 aws iam attach-role-policy --role-name centralized-logs --policy-arn arn:aws:iam::222222222222:policy/central-logging-policy
 ```
 
+## 1.4 Attach the AWS managed policy **AWSLambdaBasicExecutionRole**
+
+Type the following CLI command to attach the AWS managed policy **AWSLambdaBasicExecutionRole**
+```
+aws iam attach-role-policy --role-name centralized-log --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+```
+
+For this command line there is not output
+
+
 Now lets go to Logging Account...
 
 # Step 2.- Create Role assume-role-for-logging en 111111111111
@@ -246,9 +256,9 @@ aws iam create-role --role-name assume-role-for-logging --assume-role-policy-doc
 
 ## 2.2 Attach the AWS managed policy **AWSLambdaBasicExecutionRole**
 
-Type the following CLI command to attach the AWS managed policy **AWSLambdaBasicExecutionRole**
+Type the following CLI command to attach the AWS managed policy **CloudWatchLogsFullAccess**
 ```
-aws iam attach-role-policy --role-name assume-role-for-logging --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+aws iam attach-role-policy --role-name assume-role-for-logging --policy-arn arn:aws:iam::aws:policy/service-role/CloudWatchLogsFullAccess
 ```
 
 For this command line there is not output
