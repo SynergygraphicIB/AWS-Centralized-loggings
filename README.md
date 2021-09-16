@@ -1,5 +1,7 @@
 # AWS-Centralized-loggings
-The Centralized Logging solution helps organizations collect, analyze, and display Amazon CloudWatch Logs in a single dashboard. This solution consolidates, manages, and analyzes log files from various sources. You can collect Amazon CloudWatch Logs from multiple accounts and AWS Regions into a Logging Account in a single region.
+The Centralized Logging solution helps organizations collect, analyze, and display Amazon CloudWatch Logs in a single dashboard. This solution consolidates, manages, and analyzes log files from Amazon CloudWatch Logs from one Source Account in us-east-1 Region into a Centralized Logging Account in a single region (us-east-1).
+
+For the purpose of this tutorial we will use the following account numbers.
 
 Source-Account= 222222222222
 
